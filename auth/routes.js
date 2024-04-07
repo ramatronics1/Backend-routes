@@ -221,12 +221,11 @@ console.log(req.body)
 
 route.get('/fetchOrders/:hotelId', async (req, res) => {
   const { hotelId } = req.params;
-
-
+  console.log(hotelId)
   try {
    
     const orders = await Order.find({ hotelId: hotelId });
-
+     console.log(orders)
     const listofAcceptedOrders=await acceptedOrders.find({});
     
     var nonAcceptedOrder=[];
@@ -274,8 +273,9 @@ route.post('/acceptedOrders/:id/:hotelId', async (req, res) => {
       hotelId: hotelId,
       orderId: id
     });
-    const orderWithUser = await Order.findById(id).populate('userId');
-
+    const orderWithUser = await Order.findById(id).populate("userId")
+    console.log("inside")
+    console.log(orderWithUser)
     const email=orderWithUser.userId.email
     const mailOptions = {
       from: 'campuseatsnie@gmail.com',

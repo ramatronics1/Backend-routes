@@ -9,6 +9,16 @@ const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 const maxAge=3*24*60*60
 
+const nodemailer=require('nodemailer')
+
+const transporter = nodemailer.createTransport({
+  service: 'Gmail',
+  auth: {
+    user: 'campuseatsnie@gmail.com', // Your Gmail address
+    pass: 'vjahgulfjooofeoc' // Your Gmail password
+  }
+});
+
 const createToken=(id)=>{
 return jwt.sign({id},'clientLogin secret',{
   expiresIn:maxAge
@@ -53,19 +63,40 @@ router.post('/createOrder', async (req, res) => {
   }));
  
   const id= req.session.user_id;
-
+   console.log(req.session)
   try {
     const newOrder = new Order({
       totalAmount: price,
       userId: id,
-      hotelId:req.body.items[0].Hotel_id
+      hotelId:req.body.hotelId
+
       
      
     });
     newOrder.eachOrder = data;
    
-    console.log(newOrder)
+    // console.log(newOrder)
     const savedOrder = await newOrder.save();
+    if(savedOrder){
+      const user = await Auth.findById(id)
+      const email = user.email
+      const mailOptions = {
+        from: 'campuseatsnie@gmail.com',
+        to: email,
+        subject: 'Order Confirmation',
+        text: `Your order with the order id ${id} is placed successfully you will receive a mail once the order is ready !`
+      };
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+          res.status(500).json({ error: 'Failed to send email' });
+        } else {
+          console.log('Email sent:', info.response);
+          res.json({ message: 'Email sent successfully' });
+        }
+      })
+    }
+    res.json(savedOrder)
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
