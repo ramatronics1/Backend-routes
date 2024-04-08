@@ -7,6 +7,7 @@ const { Order } = require('../models/clientSchema');
 const { eachOrder } = require('../models/clientSchema');
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
+const { acceptedOrders } = require('../models/adminSchema');
 const maxAge=3*24*60*60
 
 const nodemailer=require('nodemailer')
@@ -84,7 +85,7 @@ router.post('/createOrder', async (req, res) => {
         from: 'campuseatsnie@gmail.com',
         to: email,
         subject: 'Order Confirmation',
-        text: `Your order with the order id ${id} is placed successfully you will receive a mail once the order is ready !`
+        text: `Your order with the order id ${savedOrder._id} is placed successfully you will receive a mail once the order is ready !`
       };
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
@@ -132,12 +133,44 @@ router.get('/displayOrders', async (req, res) => {
 
 
 router.post('/prevOrders/:id',async(req,res)=>{
-
+    
   const id=req.params.id;
+  console.log(id)
   const order = await Order.find({userId:id}).populate(
     'eachOrder.dishId'
   )
   res.json(order)
 
 })
+router.post('/prevOrderAgain/:id', async (req, res) => {
+  const {id} = req.params
+  try {
+    const reorder = await acceptedOrders.findOneAndDelete({ orderId: id });
+    const orderWithUser = await Order.findById(id).populate("userId")
+   
+    console.log(orderWithUser)
+    const email=orderWithUser.userId.email
+    const mailOptions = {
+      from: 'campuseatsnie@gmail.com',
+      to: email,
+      subject: 'Order Confirmation',
+      text: `Your order with the order id ${id} is placed successfully you will receive a mail once the order is ready !`
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        res.status(500).json({ error: 'Failed to send email' });
+      } else {
+        console.log('Email sent:', info.response);
+        res.json({ message: 'Email sent successfully' });
+      }
+    });
+    res.json(reorder);
+    console.log(reorder)
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+});
 module.exports = router;

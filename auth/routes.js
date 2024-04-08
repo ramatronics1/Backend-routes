@@ -280,7 +280,7 @@ route.post('/acceptedOrders/:id/:hotelId', async (req, res) => {
     const mailOptions = {
       from: 'campuseatsnie@gmail.com',
       to: email,
-      subject: 'Order Confirmation',
+      subject: 'Collect Your Order',
       text: `Your order with the order id ${id} is ready and can be collected in the canteen.`
     };
     transporter.sendMail(mailOptions, (error, info) => {
