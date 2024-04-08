@@ -53,6 +53,6 @@ const PORT = process.env.PORT || 5000;
 const HOST = 'localhost';
 const HOST1 = '192.168.29.42';
 
-app.listen(PORT, HOST, () => {
-  console.log(`Server running on http://${HOST}:${PORT}`);
+app.listen(PORT, HOST1, () => {
+  console.log(`Server running on http://${HOST1}:${PORT}`);
 });

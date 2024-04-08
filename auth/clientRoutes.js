@@ -53,7 +53,7 @@ router.post('/clientLogin', async (req, res) => {
 
 
 router.post('/createOrder', async (req, res) => {
-  const { price } = req.body;
+  const { price, id } = req.body;
   console.log(req.body)
   const data = req.body.items.map((f) => ({
     dishId: new mongoose.Types.ObjectId(f.dishId),
@@ -62,7 +62,7 @@ router.post('/createOrder', async (req, res) => {
     specialInstructions: f.specialInstructions,
   }));
  
-  const id= req.session.user_id;
+  
    console.log(req.session)
   try {
     const newOrder = new Order({
