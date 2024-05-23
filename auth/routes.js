@@ -3,7 +3,7 @@ const route = express.Router();
 const {cloudinary}=require('../cloudinary/index')
 const bcrypt = require('bcrypt');
 
-const { Review, Dish, Signup,Hotel,acceptedOrders} = require('../models/adminSchema');
+const { Dish, Signup,Hotel,acceptedOrders} = require('../models/adminSchema');
 const {Order}=require('../models/clientSchema')
 
 const multer = require('multer');
@@ -225,7 +225,7 @@ route.get('/fetchOrders/:hotelId', async (req, res) => {
   try {
    
     const orders = await Order.find({ hotelId: hotelId });
-     console.log(orders)
+  
     const listofAcceptedOrders=await acceptedOrders.find({});
     
     var nonAcceptedOrder=[];
@@ -269,6 +269,7 @@ route.post('/acceptedOrders/:id/:hotelId', async (req, res) => {
   try {
     const  {id,hotelId} =req.params;
    
+   
     const newAcceptedOrder = new acceptedOrders({
       hotelId: hotelId,
       orderId: id
@@ -302,6 +303,44 @@ route.post('/acceptedOrders/:id/:hotelId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+route.post('/rejectedOrders/:id/:hotelId', async (req, res) => {
+  try {
+
+    const  {id,hotelId} =req.params;
+    console.log(req.params)
+  
+     
+    const orderWithUser = await Order.findById(id).populate("userId")
+    const order = await Order.findByIdAndDelete(id);
+    
+    const email=orderWithUser.userId.email
+    const mailOptions = {
+      from: 'campuseatsnie@gmail.com',
+      to: email,
+      subject: 'Order rejected',
+      text: `Your order with the order id ${id} is Rejected, Please try again.`
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        res.status(500).json({ error: 'Failed to send email' });
+      } else {
+        console.log('Email sent:', info.response);
+        res.json({ message: 'Email sent successfully' });
+      }
+    });
+   
+  
+
+   
+    res.status(201)
+  } catch (error) {
+    console.error('Error saving accepted order:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 route.post('/hotel/:id',async(req,res)=>{
   const id=req.params.id;
   
